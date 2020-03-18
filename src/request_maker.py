@@ -12,9 +12,14 @@ def get_auth_token():
         Nombre: get_auth_token
         Descripción: Devuelve el token de autorizacion para SecureBox.
         Retorno:
-            Cadena con el token.
+            Cadena con el token, o None si falla.
     '''
-    return "8Ab1FB0E35CfaD2e"
+    f = open("auth_token.dat", "r")
+    if f == None:
+        return None
+    auth = f.read()
+    f.close()
+    return auth
 
 def make_post_request(endpoint,datos):
     '''
@@ -28,6 +33,8 @@ def make_post_request(endpoint,datos):
     '''
     url = "https://vega.ii.uam.es:8080/api" + endpoint
     token = get_auth_token()
+    if token == None:
+        return None
     #cabeceras
     cabeceras = dict()
     cabeceras['Authorization'] = "Bearer " + token
@@ -48,7 +55,7 @@ def make_post_request(endpoint,datos):
     respuesta = r.json()
     if r.status_code != 200:
         print("Servidor reporta error: " + respuesta["description"])
-        return -1
+        return None
     return respuesta
 
 def create_id(nombre, email):
@@ -62,7 +69,7 @@ def create_id(nombre, email):
             0 si todo es correcto, -1 en otro caso. Imprime por pantalla el resultado.
     '''
 
-    keys = [0,0] #TODO llamar a la funcion del modulo de cripto para obtener las claves.
+    keys = ["publickeyplaceholder","privatekeyplaceholder"] #TODO llamar a la funcion del modulo de cripto para obtener las claves.
 
     #datos
     datos = dict()
@@ -77,6 +84,11 @@ def create_id(nombre, email):
 
     fecha = datetime.utcfromtimestamp(respuesta["ts"]).strftime('%Y-%m-%d %H:%M:%S UTC')
     print("Usuario registrado correctamente con nombre: " + respuesta["nombre"] + " y timestamp: " + fecha)
+
+    #Almacenamos la clave privada en disco. Solo hay un usuario por token
+    f = open("privateKey.dat", "w")
+    f.write(keys[1])
+    f.close()
     return 0
     
 def search_id(cadena):
@@ -129,3 +141,21 @@ def delete_id(id):
         return -1
 
     print("Usuario con ID: " + respuesta["userID"] + " eliminado con exito.")
+
+def get_public_key(id):
+    '''
+        Nombre: delete_id
+        Descripción: Funcion que devuelve la clave publica de un usuario como cadena.
+        Argumentos:
+            id: usuario del que obtener la clave publica.
+        Retorno:
+            cadena con la clave publica, o bien None en caso de error.
+    '''
+    datos = dict()
+    datos["userID"] = str(id)
+
+    respuesta = make_post_request("/users/getPublicKey", datos)
+    if respuesta == None:
+        return None
+
+    return respuesta["publicKey"].replace('-----BEGIN PUBLIC KEY-----\n','').replace('-----END PUBLIC KEY-----','').replace('\n','')
