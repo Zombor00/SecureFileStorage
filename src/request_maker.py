@@ -35,7 +35,7 @@ def make_post_request(endpoint,post_json,post_data,post_files,raw_answer = 0):
         Retorno:
             Estructura JSON con los datos de la respuesta, o None si falla.
     '''
-    url = "https://vega.ii.uam.es:8080/api" + endpoint
+    url = "https://tfg.eps.uam.es:8080/api" + endpoint
     token = get_auth_token()
     if token == None:
         return None
@@ -93,7 +93,7 @@ def create_id(nombre, email):
         return -1
 
     fecha = datetime.utcfromtimestamp(respuesta["ts"]).strftime('%Y-%m-%d %H:%M:%S UTC')
-    print("Usuario registrado correctamente con nombre: " + respuesta["nombre"] + " y timestamp: " + fecha)
+    print("Usuario registrado correctamente con ID: " + respuesta["userID"] + " y timestamp: " + fecha)
 
     #Almacenamos la clave privada en disco. Solo hay un usuario por token
     f = open("privateKey.dat", "w")
