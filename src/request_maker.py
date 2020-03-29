@@ -158,6 +158,7 @@ def delete_id(user_id):
         return -1
 
     print("Usuario con ID: " + respuesta["userID"] + " eliminado con exito.")
+    return 0
 
 def get_public_key(user_id):
     '''
