@@ -19,8 +19,8 @@ def create_key():
 
     keyObject = RSA.generate(2048)
     key = [0,0]
-    key[0] = keyObject.publickey().export_key()
-    key[1] = keyObject.export_key()
+    key[0] = keyObject.publickey().export_key().decode("utf-8")
+    key[1] = keyObject.export_key().decode("utf-8")
     return key
 
 
@@ -33,6 +33,10 @@ def encrypt(stream):
         Retorno:
             Diccionario con los valores "iv"(vector de inicializacion), "ciphertext"(mensaje cifrado) y "key"(clave simétrica usada para encriptar).
     '''
+    try:
+        stream = stream.encode("utf-8")
+    except:
+        pass
     iv = get_random_bytes(16)
     key_bytes = get_random_bytes(32)
     cipher = AES.new(key_bytes, AES.MODE_CBC,iv)
@@ -74,6 +78,9 @@ def sign(stream,privKey):
         Retorno:
             El mensaje con la firma concatenada delante. 
     '''
+
+    privKey = privKey.encode("utf-8")
+
     #Calculamos el sha256 del mensaje
     streamBytes = stream.encode("utf-8")
     hashedStream = SHA256.new(data = streamBytes)
@@ -95,9 +102,14 @@ def verify_sign(stream,pubKey,firma):
         Retorno:
             True si la autenticidad es correcta y False en caso contrario.
     '''
+ 
+    pubKey = pubKey.encode("utf-8")
 
     #Calculamos el sha256 del mensaje
-    streamBytes = stream.encode("utf-8")
+    try:
+        streamBytes = stream.encode("utf-8")
+    except:
+        streamBytes = stream
     hashedStream = SHA256.new(data = streamBytes)
 
     #Comprobamos la autenticidad del mensaje
@@ -121,6 +133,7 @@ def enc_sign(stream,privKey,pubKey):
         Retorno:
             Devuelve un string con los 16 primeros bytes el IV usado, los siguientes 32 bytes la clave simetrica usada, y los últimos el mensaje firmado y cifrado.
     '''
+
     #Firmamos
     streamFirmado = sign(stream,privKey)
 
@@ -128,7 +141,7 @@ def enc_sign(stream,privKey,pubKey):
     encrypted = encrypt(streamFirmado)
 
     #Generamos el sobre digital
-    cipher_rsa = PKCS1_v1_5.new(RSA.import_key(pubKey.decode("utf-8")))
+    cipher_rsa = PKCS1_v1_5.new(RSA.import_key(pubKey))
     sobreDigital = cipher_rsa.encrypt(encrypted["key"].encode("utf-8"))
      
     return b64decode(encrypted["iv"]) + sobreDigital + encrypted["ciphertext"].encode("utf-8")
@@ -144,6 +157,7 @@ def dec_sign(stream,privKey,pubKey):
         Retorno:
             Devuelve el mensaje descifrado y None si la signature no es valida.
     '''
+
     iv = b64encode(stream[:16]).decode("utf-8")
     claveCifrada = stream[16:16 + 256]
     mensajeCifrado = stream[16 + 256:]
@@ -151,7 +165,7 @@ def dec_sign(stream,privKey,pubKey):
     dsize = SHA.digest_size
     sentinel = Random.new().read(15+dsize)
 
-    cipher_rsa = PKCS1_v1_5.new(RSA.import_key(privKey.decode("utf-8")))
+    cipher_rsa = PKCS1_v1_5.new(RSA.import_key(privKey))
     claveSimetrica = cipher_rsa.decrypt(claveCifrada, sentinel)
 
     #Desciframos el mensaje
@@ -162,10 +176,21 @@ def dec_sign(stream,privKey,pubKey):
        return mensajeDescifrado[0]
     return None
 
-#key = create_key()
-#x = enc_sign("jajaxdkbueno",key[1],key[0])
-#print("Mensaje firmado y cifrado:")
-#print(x)
-#y = dec_sign(x,key[1],key[0])
-#print("Mensaje descifrado:")
-#print(y)
+key = create_key()
+print(key)
+x = encrypt("wtf")
+print("Encrypt:")
+print(x)
+print("Decrypt:")
+print(decrypt(x["ciphertext"],x["key"],x["iv"],False))
+print("Signed:")
+x = sign("wtf",key[1])
+print(x)
+print("Verified")
+print(verify_sign(x[256:],key[0],x[:256]))
+x = enc_sign("jajaxdkbueno",key[1],key[0])
+print("Mensaje firmado y cifrado:")
+print(x)
+y = dec_sign(x,key[1],key[0])
+print("Mensaje descifrado y autentificado:")
+print(y)
