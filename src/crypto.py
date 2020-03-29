@@ -169,11 +169,16 @@ def dec_sign(stream,privKey,pubKey):
     claveSimetrica = cipher_rsa.decrypt(claveCifrada, sentinel)
 
     #Desciframos el mensaje
+    print("-> Descifrando fichero... ",end='')
     mensajeDescifrado = decrypt(mensajeCifrado, claveSimetrica, iv,True)
+    print("OK")
 
     #Comprobamos la autenticidad del mensaje
+    print("-> Verificando firma... ", end='')
     if(verify_sign(mensajeDescifrado[0], pubKey, mensajeDescifrado[1])):
-       return mensajeDescifrado[0]
+        print("OK")
+        return mensajeDescifrado[0]
+    print("ERROR: Firma no válida")
     return None
 
 #key = create_key()

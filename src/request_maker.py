@@ -6,6 +6,8 @@
 '''
 import requests
 from datetime import datetime #Para formateo de fechas
+from crypto import create_key, sign, enc_sign, dec_sign
+from io import BytesIO
 
 def get_auth_token():
     '''
@@ -79,7 +81,7 @@ def create_id(nombre, email):
             0 si todo es correcto, -1 en otro caso. Imprime por pantalla el resultado.
     '''
 
-    keys = ["publickeyplaceholder","privatekeyplaceholder"] #TODO llamar a la funcion del modulo de cripto para obtener las claves.
+    keys = create_key()
 
     #datos
     datos = dict()
@@ -122,13 +124,13 @@ def search_id(cadena):
     i=0
     for user in respuesta:
 
-        #El servidor permite campos faltantes, los reemplazamos por cadenas para que el print no falle.
+        #Los usuarios que no han creado identidad, tienen campos faltantes. Los saltamos.
         if user["nombre"] == None:
-            user["nombre"] = "None"
+            continue
         if user["email"] == None:
-            user["email"] = "None"
+            continue
         if user["userID"] == None:
-            user["userID"] = "None"
+            continue
             
         print("["+str(i+1)+"] " + user["nombre"]+", " + user["email"] + ", ID: " + user["userID"])
         i+=1
@@ -170,44 +172,91 @@ def get_public_key(user_id):
     if respuesta == None:
         return None
 
-    return respuesta["publicKey"].replace('-----BEGIN PUBLIC KEY-----\n','').replace('-----END PUBLIC KEY-----','').replace('\n','')
+    return respuesta["publicKey"]
 
-def upload_file(path):
+def upload_file(path, dest_id):
     '''
         Nombre: upload_file
         Descripción: Funcion que permite subir un fichero al servidor.
         Argumentos:
             path: Nombre/ruta relativa del fichero que se va a subir.
+            dest_id: ID del receptor para el cifrado y la firma.
         Retorno:
             0 si todo es correcto, -1 en otro caso. Imprime por pantalla el resultado.
     '''
-    f = open(path, "rb")
+    #Se abre el fichero
+    f = open(path, "r")
+    privateKey = open("privateKey.dat", "r")
     
-    if f == None:
+    if f == None or privateKey == None:
         print("Error enviando fichero: " + path +". Fichero no encontrado.")
     
+    #Se carga la clave privada
+    priv = privateKey.read()
+
+    #Se carga la clave publica
+    print("-> Recuperando clave pública de ID " + dest_id + "... ",end='')
+    publ = get_public_key(dest_id)
+    if publ == None:
+        print("Error recuperando clave pública. Fichero no enviado.")
+        return -1
+    print("OK")
+
+    #Se cifra+firma
+    print("-> Cifrando y firmando fichero...",end='')
+    final = enc_sign(f.read(), priv, publ)
+    print("OK")
+
+    #Cierre de recursos
+    f.close()
+    privateKey.close()
+
+    #Preparamos un descriptor con los datos
+    final_file = BytesIO(final)
+    final_file.name = f.name
+
+    #Envio
+    print("-> Subiendo fichero a servidor...", end='')
     files = dict()
-    files["ufile"] = f
+    files["ufile"] = final_file
 
     respuesta = make_post_request("/files/upload", None, None, files)
     if respuesta == None:
+        print("Error subiendo fichero a servidor.")
         return -1
     
     f.close()
+
+    print("OK")
     print("Subida realizada correctamente, ID del fichero: " + str(respuesta["file_id"]) + ". Tamaño subido: " + str(respuesta["file_size"])+".")
     return 0
 
-def download_file(file_id,path = None):
+def download_file(file_id, source_id, path = None):
     '''
         Nombre: download_file
         Descripción: Funcion que permite descargar un fichero del servidor.
         Argumentos:
             file_id: Cadena con el identificador del fichero.
+            source_id: ID del que subio el fichero, para descifrado.
             path: Ruta donde se escribirá el fichero. Si existía previamente, será machacado.
             Si path se ajusta a None, se escribirá con el nombre de fichero que reporte el servidor.
         Retorno:
             Cadena con el path donde se escribió, o bien None en caso de error.
     '''
+
+    #Se obtiene nuestra clave privada:
+    privateKey = open("privateKey.dat", "r")
+    priv = privateKey.read()
+    privateKey.close()
+
+    #Se carga la clave publica. Asi evitamos bajarnos el fichero entero y no tener la clave.
+    print("-> Recuperando clave pública de ID " + source_id + "... ",end='')
+    publ = get_public_key(source_id)
+    if publ == None:
+        print("Error recuperando clave pública. Fichero no enviado.")
+        return None
+    print("OK")
+
     datos = dict()
     datos["file_id"] = file_id
 
@@ -226,11 +275,14 @@ def download_file(file_id,path = None):
         if path == None:
             print("Error obteniendo nombre del fichero a través del servidor.")
             return None
-
-    f = open(path,"wb")
-    f.write(respuesta.content)
-    f.close()
     print("-> " + str(len(respuesta.content)) + " bytes descargados correctamente")
+
+    #Desciframos el mensaje
+    descifrado = dec_sign(respuesta.content, priv, publ)
+
+    f = open(path,"w")
+    f.write(descifrado)
+    f.close()
     return path
 
 def list_files():
