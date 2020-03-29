@@ -87,7 +87,7 @@ def create_id(nombre, email):
     datos = dict()
     datos['nombre'] = nombre
     datos['email'] = email
-    datos['publicKey'] = keys[0]
+    datos['publicKey'] = keys[0].decode()
 
     #Se hace la peticion
     respuesta = make_post_request("/users/register", datos, None, None)
@@ -98,7 +98,7 @@ def create_id(nombre, email):
     print("Usuario registrado correctamente con ID: " + respuesta["userID"] + " y timestamp: " + fecha)
 
     #Almacenamos la clave privada en disco. Solo hay un usuario por token
-    f = open("privateKey.dat", "w")
+    f = open("privateKey.pem", "wb")
     f.write(keys[1])
     f.close()
     return 0
@@ -120,7 +120,7 @@ def search_id(cadena):
     if respuesta == None:
         return -1
 
-    print(str(len(respuesta)) + " usuarios encontrados: ")
+    results = ""
     i=0
     for user in respuesta:
 
@@ -132,8 +132,11 @@ def search_id(cadena):
         if user["userID"] == None:
             continue
             
-        print("["+str(i+1)+"] " + user["nombre"]+", " + user["email"] + ", ID: " + user["userID"])
+        results += "["+str(i+1)+"] " + user["nombre"]+", " + user["email"] + ", ID: " + user["userID"] + "\n"
         i+=1
+
+    print(str(i) + " usuarios encontrados: ")
+    print(results[:-1]) #Quito el \n final
 
     return 0
 
@@ -172,7 +175,7 @@ def get_public_key(user_id):
     if respuesta == None:
         return None
 
-    return respuesta["publicKey"]
+    return respuesta["publicKey"].encode()
 
 def upload_file(path, dest_id):
     '''
@@ -185,11 +188,17 @@ def upload_file(path, dest_id):
             0 si todo es correcto, -1 en otro caso. Imprime por pantalla el resultado.
     '''
     #Se abre el fichero
-    f = open(path, "r")
-    privateKey = open("privateKey.dat", "r")
+    f = open(path, "rb")
     
-    if f == None or privateKey == None:
+    if f == None:
         print("Error enviando fichero: " + path +". Fichero no encontrado.")
+        return -1
+
+    privateKey = open("privateKey.pem", "rb")
+    if privateKey == None:
+        print("Error enviando fichero: no se ha encontrado clave privada. Debe crearse una identidad primero con --create_id.")
+        f.close()
+        return -1
     
     #Se carga la clave privada
     priv = privateKey.read()
@@ -245,7 +254,10 @@ def download_file(file_id, source_id, path = None):
     '''
 
     #Se obtiene nuestra clave privada:
-    privateKey = open("privateKey.dat", "r")
+    privateKey = open("privateKey.pem", "rb")
+    if privateKey == None:
+        print("Error enviando fichero: no se ha encontrado clave privada. Debe crearse una identidad primero con --create_id.")
+        return None
     priv = privateKey.read()
     privateKey.close()
 
@@ -280,7 +292,7 @@ def download_file(file_id, source_id, path = None):
     #Desciframos el mensaje
     descifrado = dec_sign(respuesta.content, priv, publ)
 
-    f = open(path,"w")
+    f = open(path,"wb")
     f.write(descifrado)
     f.close()
     return path
@@ -322,3 +334,4 @@ def delete_file(file_id):
         return -1
 
     print("Fichero con ID: " + respuesta["file_id"] + " eliminado con exito.")
+    return 0

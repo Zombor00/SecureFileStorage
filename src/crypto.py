@@ -1,4 +1,3 @@
-from base64 import b64encode,b64decode
 from Crypto.Signature import pkcs1_15
 from Crypto.Cipher import AES,PKCS1_v1_5
 from Crypto.PublicKey import RSA
@@ -16,11 +15,12 @@ def create_key():
         Retorno:
             Tupla en el que el primer elemento es la clave publica y el segundo elemento es la clave privada en formato pem.
     '''
-
+    print("-> Generando claves...",end='')
     keyObject = RSA.generate(2048)
-    key = [0,0]
-    key[0] = keyObject.publickey().export_key().decode("utf-8")
-    key[1] = keyObject.export_key().decode("utf-8")
+    print("OK")
+    key = []
+    key.append(keyObject.publickey().export_key())
+    key.append(keyObject.export_key())
     return key
 
 
@@ -29,23 +29,17 @@ def encrypt(stream):
         Nombre: encrypt
         Descripcion: Encripta con AES con modo de encadenamiento CBC, con IV de 16 bytes, y longitud de clave de 256 bits.
         Argumentos:
-            stream: Mensaje a encriptar
+            stream: Mensaje a encriptar en bytes
         Retorno:
             Diccionario con los valores "iv"(vector de inicializacion), "ciphertext"(mensaje cifrado) y "key"(clave simétrica usada para encriptar).
     '''
-    try:
-        stream = stream.encode("utf-8")
-    except:
-        pass
+
     iv = get_random_bytes(16)
     key_bytes = get_random_bytes(32)
     cipher = AES.new(key_bytes, AES.MODE_CBC,iv)
     ciphertext_bytes = cipher.encrypt(pad(stream, AES.block_size))
-    ivb64 = b64encode(cipher.iv).decode('utf-8')
-    ciphertext = b64encode(ciphertext_bytes).decode('utf-8')
-    key = b64encode(key_bytes).decode('utf-8')
 
-    return {'iv':ivb64, 'ciphertext':ciphertext, 'key':key}
+    return {'iv':iv, 'ciphertext':ciphertext_bytes, 'key':key_bytes}
 
 def decrypt(stream,key,iv,signed):
     '''
@@ -59,14 +53,11 @@ def decrypt(stream,key,iv,signed):
         Retorno:
             El stream desencriptado.
     '''
-    iv_bytes = b64decode(iv)
-    stream_bytes = b64decode(stream)
-    key_bytes = b64decode(key)
-    cipher = AES.new(key_bytes, AES.MODE_CBC, iv_bytes)
-    pt = unpad(cipher.decrypt(stream_bytes), AES.block_size)
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    pt = unpad(cipher.decrypt(stream), AES.block_size)
     if(signed):
-        return(pt[256:].decode("utf-8"),pt[:256])
-    return (pt.decode("utf-8"))
+        return(pt[256:],pt[:256])
+    return pt
 
 def sign(stream,privKey):
     '''
@@ -79,17 +70,14 @@ def sign(stream,privKey):
             El mensaje con la firma concatenada delante. 
     '''
 
-    privKey = privKey.encode("utf-8")
-
     #Calculamos el sha256 del mensaje
-    streamBytes = stream.encode("utf-8")
-    hashedStream = SHA256.new(data = streamBytes)
+    hashedStream = SHA256.new(data = stream)
 
     # Generamos la firma
-    firma = pkcs1_15.new(RSA.import_key(privKey.decode("utf-8"))).sign(hashedStream)
+    firma = pkcs1_15.new(RSA.import_key(privKey)).sign(hashedStream)
 
     #Devolvemos la firma concatenada
-    return firma + streamBytes
+    return firma + stream
 
 def verify_sign(stream,pubKey,firma):
     '''
@@ -102,19 +90,13 @@ def verify_sign(stream,pubKey,firma):
         Retorno:
             True si la autenticidad es correcta y False en caso contrario.
     '''
- 
-    pubKey = pubKey.encode("utf-8")
 
     #Calculamos el sha256 del mensaje
-    try:
-        streamBytes = stream.encode("utf-8")
-    except:
-        streamBytes = stream
-    hashedStream = SHA256.new(data = streamBytes)
+    hashedStream = SHA256.new(data = stream)
 
     #Comprobamos la autenticidad del mensaje
     try:
-        pkcs1_15.new(RSA.import_key(pubKey.decode("utf-8"))).verify(hashedStream, firma)
+        pkcs1_15.new(RSA.import_key(pubKey)).verify(hashedStream, firma)
         #print("The signature is valid.")
         return True
     except (ValueError, TypeError):
@@ -142,9 +124,9 @@ def enc_sign(stream,privKey,pubKey):
 
     #Generamos el sobre digital
     cipher_rsa = PKCS1_v1_5.new(RSA.import_key(pubKey))
-    sobreDigital = cipher_rsa.encrypt(encrypted["key"].encode("utf-8"))
+    sobreDigital = cipher_rsa.encrypt(encrypted["key"])
      
-    return b64decode(encrypted["iv"]) + sobreDigital + encrypted["ciphertext"].encode("utf-8")
+    return encrypted["iv"] + sobreDigital + encrypted["ciphertext"]
 
 def dec_sign(stream,privKey,pubKey):
     '''
@@ -158,7 +140,7 @@ def dec_sign(stream,privKey,pubKey):
             Devuelve el mensaje descifrado y None si la signature no es valida.
     '''
 
-    iv = b64encode(stream[:16]).decode("utf-8")
+    iv = stream[:16]
     claveCifrada = stream[16:16 + 256]
     mensajeCifrado = stream[16 + 256:]
 
@@ -180,22 +162,3 @@ def dec_sign(stream,privKey,pubKey):
         return mensajeDescifrado[0]
     print("ERROR: Firma no válida")
     return None
-
-#key = create_key()
-#print(key)
-#x = encrypt("wtf")
-#print("Encrypt:")
-#print(x)
-#print("Decrypt:")
-#print(decrypt(x["ciphertext"],x["key"],x["iv"],False))
-#print("Signed:")
-#x = sign("wtf",key[1])
-#print(x)
-#print("Verified")
-#print(verify_sign(x[256:],key[0],x[:256]))
-#x = enc_sign("jajaxdkbueno",key[1],key[0])
-#print("Mensaje firmado y cifrado:")
-#print(x)
-#y = dec_sign(x,key[1],key[0])
-#print("Mensaje descifrado y autentificado:")
-#print(y)
