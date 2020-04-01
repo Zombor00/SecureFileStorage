@@ -138,6 +138,8 @@ def enc_sign(stream,privKey,pubKey,firma=True):
     #Firmamos
     if(firma): 
         streamFirmado = sign(stream,privKey)
+    else:
+        streamFirmado = stream
 
     #Encriptamos el mensaje firmado
     encrypted = encrypt(streamFirmado)
