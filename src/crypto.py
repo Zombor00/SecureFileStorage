@@ -122,20 +122,22 @@ def verify_sign(stream,pubKey,firma):
         return False
 
 
-def enc_sign(stream,privKey,pubKey):
+def enc_sign(stream,privKey,pubKey,firma=True):
     '''
         Nombre: enc_sign
-        Descripcion: Aplicamos un mensaje híbrido para firmar y encriptar: firma un mensaje usando RSA, encripta el mensaje firmado usando AES y luego genera un sobre digital con la clave simetrica.
+        Descripcion: Aplicamos un mensaje híbrido para (firmar) y encriptar: (firma un mensaje usando RSA), encripta el mensaje firmado usando AES y luego genera un sobre digital con la clave simetrica.
         Argumentos:
             stream: Mensaje a firmar y encriptar
             privKey: clave privada del emisor usada para la firma digital.
             pubKey: clave publica del receptor usada para generar el sobredigital.
+            firma: Indica si es necesario firmar el fichero.
         Retorno:
             Devuelve un string con los 16 primeros bytes el IV usado, los siguientes 32 bytes la clave simetrica usada, y los últimos el mensaje firmado y cifrado.
     '''
 
     #Firmamos
-    streamFirmado = sign(stream,privKey)
+    if(firma): 
+        streamFirmado = sign(stream,privKey)
 
     #Encriptamos el mensaje firmado
     encrypted = encrypt(streamFirmado)

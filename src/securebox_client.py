@@ -88,11 +88,27 @@ if __name__ == "__main__":
     if args.encrypt != None:
         print("Encriptando fichero localmente...")
         if args.dest_id != None:
-            #TODO: Encriptar el fichero (IV + CLAVE AES CIFRADA + FICHERO CIFRADO) y guardarlo en un fichero 
-            #Por ejemplo file.dat daria lugar a file_encrypted.dat.
-            #Usar como publica para cifrar: args.dest_id. 
-            #Seguramente haya que crear una funcion en el modulo de crypto que haga el cifrado hibrido sin firmar.
-            pass
+            #Obtenemos la privada
+            privateKey = open("privateKey.pem", "rb")
+            if privateKey == None:
+                exit ("No existe la clave privada. Se debe crear una identidad con --create_id primero.")
+            priv = privateKey.read()
+            privateKey.close()
+            #Obtenemos la clave publica
+            publ = get_public_key(args.dest_id)
+            if publ == None:
+                exit ("Error obteniendo clave pública")
+            #Abrimos fichero
+            fichero = open(args.encrypt, "rb")
+            if fichero == None:
+                exit ("Error abriendo fichero.")
+            enc = enc_sign(fichero.read(), priv, publ,False)
+            fichero.close()
+            #Escribimos
+            ficheroFinal = open("ENCRYPTED_" + args.encrypt, "wb")
+            ficheroFinal.write(enc)
+            ficheroFinal.close()
+            exit("Operacion realizada con exito. Salida: " + "ENCRYPTED_" + args.encrypt)
         exit ("No se ha especificado ID de destinatario con --dest-id")
 
     #Firmar fichero
