@@ -1,3 +1,11 @@
+'''
+    crypto.py
+    Modulo encargado del apartado criptográfico de securebox
+    @author Alejandro Bravo, Miguel Gonzalez
+    @version 1.0
+    @date 30-03-2020
+'''
+
 from Crypto.Signature import pkcs1_15
 from Crypto.Cipher import AES,PKCS1_v1_5
 from Crypto.PublicKey import RSA
@@ -51,10 +59,20 @@ def decrypt(stream,key,iv,signed):
             iv: Vector de inicializacion que usa AES en modo CBC.
             signed: True si el mensaje lleva firma, False si no esta firmado.
         Retorno:
-            El stream desencriptado.
+            El stream desencriptado o None en caso de error.
     '''
-    cipher = AES.new(key, AES.MODE_CBC, iv)
-    pt = unpad(cipher.decrypt(stream), AES.block_size)
+    try:
+        cipher = AES.new(key, AES.MODE_CBC, iv)
+    except:
+        print("Error al generar el cifrador AES con la llave simétrica e IV introducidos.")
+        return None
+    
+    try:
+        pt = unpad(cipher.decrypt(stream), AES.block_size)
+    except:
+        print("Error al desencriptar y unppadear el resultado del stream introducidos.")
+        return None
+
     if(signed):
         return(pt[256:],pt[:256])
     return pt
@@ -137,7 +155,7 @@ def dec_sign(stream,privKey,pubKey):
             privKey: Llave privada del receptor para desencriptar el sobre digital
             pubKey: Llave publica del emisor usada para verificar la autenticidad del mensaje
         Retorno:
-            Devuelve el mensaje descifrado y None si la signature no es valida.
+            Devuelve el mensaje descifrado y None si la signature no es valida o se da un error al desencriptar.
     '''
 
     iv = stream[:16]
@@ -153,6 +171,8 @@ def dec_sign(stream,privKey,pubKey):
     #Desciframos el mensaje
     print("-> Descifrando fichero... ",end='')
     mensajeDescifrado = decrypt(mensajeCifrado, claveSimetrica, iv,True)
+    if(mensajeDescifrado == None):
+        return None
     print("OK")
 
     #Comprobamos la autenticidad del mensaje

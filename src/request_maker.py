@@ -1,6 +1,13 @@
 '''
     request_maker.py
     Modulo que se comunica con el servidor para realizar las peticiones a SecureBox.
+    @author Miguel Gonzalez, Alejandro Bravo.
+    @version 1.0
+    @date 20-03-2020
+'''
+
+'''
+    request_maker.py
     Autor: Miguel Gonzalez y Alejandro Bravo (Grupo 2301)
     2020
 '''
@@ -292,6 +299,8 @@ def download_file(file_id, source_id, path = None):
 
     #Desciframos el mensaje
     descifrado = dec_sign(respuesta.content, priv, publ)
+    if(descifrado == None):
+       return None
 
     f = open(path,"wb")
     f.write(descifrado)

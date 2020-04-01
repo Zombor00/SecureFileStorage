@@ -1,3 +1,11 @@
+'''
+    securebox_client.py   
+    Modulo que realiza las peticiones al servidor SecureBox.
+    @author Miguel Gonzalez, Alejandro Bravo.
+    @version 1.0
+    @date 22-03-2020
+'''
+
 from request_maker import *
 from crypto import *
 from sys import exit
