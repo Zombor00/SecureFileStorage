@@ -1,6 +1,6 @@
 '''
     securebox_client.py   
-    Modulo que realiza las peticiones al servidor SecureBox.
+    Programa principal para cifrar y firmar ficheros y comunicarse con securebox.
     @author Miguel Gonzalez, Alejandro Bravo.
     @version 1.0
     @date 22-03-2020
@@ -105,10 +105,10 @@ if __name__ == "__main__":
             enc = enc_sign(fichero.read(), priv, publ,False)
             fichero.close()
             #Escribimos
-            ficheroFinal = open("ENCRYPTED_" + args.encrypt, "wb")
+            ficheroFinal = open(args.encrypt + "_ENCRYPTED", "wb")
             ficheroFinal.write(enc)
             ficheroFinal.close()
-            exit("Operacion realizada con exito. Salida: " + "ENCRYPTED_" + args.encrypt)
+            exit("Operacion realizada con exito. Salida: " + args.encrypt + "_ENCRYPTED")
         exit ("No se ha especificado ID de destinatario con --dest-id")
 
     #Firmar fichero
@@ -126,10 +126,10 @@ if __name__ == "__main__":
             exit ("Error abriendo fichero.")
         signed = sign(fichero.read(), priv)
         fichero.close()
-        ficheroFirmado = open("SIGNED_" + args.sign, "wb")
+        ficheroFirmado = open(args.sign + "_SIGNED" , "wb")
         ficheroFirmado.write(signed)
         ficheroFirmado.close()
-        exit("Operacion realizada con exito. Salida: " + "SIGNED_" + args.sign)
+        exit("Operacion realizada con exito. Salida: " + args.sign + "_SIGNED")
 
     #Firma + encriptado
     if args.enc_sign != None:
@@ -152,10 +152,10 @@ if __name__ == "__main__":
             encsigned = enc_sign(fichero.read(), priv, publ)
             fichero.close()
             #Escribimos
-            ficheroFinal = open("ENCRYPTED_SIGNED_" + args.enc_sign, "wb")
+            ficheroFinal = open(args.enc_sign + "_ENCRYPTED_SIGNED", "wb")
             ficheroFinal.write(encsigned)
             ficheroFinal.close()
-            exit("Operacion realizada con exito. Salida: " + "ENCRYPTED_SIGNED_" + args.enc_sign)
+            exit("Operacion realizada con exito. Salida: " + args.enc_sign + "_ENCRYPTED_SIGNED" )
         exit ("No se ha especificado ID de destinatario con --dest-id")
 
     #Si se llego hasta aqui es que falta algo
