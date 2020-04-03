@@ -64,13 +64,13 @@ def decrypt(stream,key,iv,signed):
     try:
         cipher = AES.new(key, AES.MODE_CBC, iv)
     except:
-        print("Error al generar el cifrador AES con la llave simétrica e IV introducidos.")
+        print("Error al generar el cifrador AES con la llave simétrica e IV introducidos. Puede deberse a que el fichero solicitado no esté destinado a este usuario.")
         return None
     
     try:
         pt = unpad(cipher.decrypt(stream), AES.block_size)
     except:
-        print("Error al desencriptar y unppadear el resultado del stream introducidos.")
+        print("Error al desencriptar y unppadear el resultado del stream introducidos. Puede deberse a que el fichero solicitado no esté destinado a este usuario.")
         return None
 
     if(signed):

@@ -88,12 +88,6 @@ if __name__ == "__main__":
     if args.encrypt != None:
         print("Encriptando fichero localmente...")
         if args.dest_id != None:
-            #Obtenemos la privada
-            privateKey = open("privateKey.pem", "rb")
-            if privateKey == None:
-                exit ("No existe la clave privada. Se debe crear una identidad con --create_id primero.")
-            priv = privateKey.read()
-            privateKey.close()
             #Obtenemos la clave publica
             publ = get_public_key(args.dest_id)
             if publ == None:
@@ -102,7 +96,7 @@ if __name__ == "__main__":
             fichero = open(args.encrypt, "rb")
             if fichero == None:
                 exit ("Error abriendo fichero.")
-            enc = enc_sign(fichero.read(), priv, publ,False)
+            enc = enc_sign(fichero.read(), None, publ,False)
             fichero.close()
             #Escribimos
             ficheroFinal = open(args.encrypt + "_ENCRYPTED", "wb")
@@ -114,12 +108,10 @@ if __name__ == "__main__":
     #Firmar fichero
     if args.sign != None:
         print("Firmando fichero localmente...")
-        #Obtener clave publica
-        privateKey = open("privateKey.pem", "rb")
-        if privateKey == None:
+        #Obtenemos la privada
+        priv = get_private_key()
+        if priv == None:
             exit ("No existe la clave privada. Se debe crear una identidad con --create_id primero.")
-        priv = privateKey.read()
-        privateKey.close()
         #Firmar fichero
         fichero = open(args.sign, "rb")
         if fichero == None:
@@ -136,11 +128,9 @@ if __name__ == "__main__":
         print("Encriptando y firmando fichero localmente...")
         if args.dest_id != None:
             #Obtenemos la privada
-            privateKey = open("privateKey.pem", "rb")
-            if privateKey == None:
+            priv = get_private_key()
+            if priv == None:
                 exit ("No existe la clave privada. Se debe crear una identidad con --create_id primero.")
-            priv = privateKey.read()
-            privateKey.close()
             #Obtenemos la clave publica
             publ = get_public_key(args.dest_id)
             if publ == None:

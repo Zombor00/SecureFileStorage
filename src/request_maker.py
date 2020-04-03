@@ -23,12 +23,32 @@ def get_auth_token():
         Retorno:
             Cadena con el token, o None si falla.
     '''
-    f = open("auth_token.dat", "r")
+    try:
+        f = open("auth_token.dat", "r")
+    except FileNotFoundError:
+	    return None
     if f == None:
         return None
     auth = f.read()
     f.close()
     return auth
+	
+def get_private_key():
+    '''
+        Nombre: get_private_key
+        Descripción: Devuelve la clave privada del usuario.
+        Retorno:
+            Clave en formato PEM como array de bytes o None si falla.
+    '''
+    try:
+        f = open("privateKey.pem", "rb")
+    except FileNotFoundError:
+	    return None
+    if f == None:
+        return None
+    key = f.read()
+    f.close()
+    return key
 
 def make_post_request(endpoint,post_json,post_data,post_files,raw_answer = 0):
     '''
@@ -47,6 +67,7 @@ def make_post_request(endpoint,post_json,post_data,post_files,raw_answer = 0):
     url = "https://tfg.eps.uam.es:8080/api" + endpoint
     token = get_auth_token()
     if token == None:
+        print("Error obteniendo el token de autenticación. Por favor, vuelque el token en un fichero auth_token.dat.")
         return None
     #cabeceras
     cabeceras = dict()
@@ -202,14 +223,11 @@ def upload_file(path, dest_id):
         print("Error enviando fichero: " + path +". Fichero no encontrado.")
         return -1
 
-    privateKey = open("privateKey.pem", "rb")
-    if privateKey == None:
+    #Se carga la clave privada.
+    priv = get_private_key()
+    if priv == None:
         print("Error enviando fichero: no se ha encontrado clave privada. Debe crearse una identidad primero con --create_id.")
-        f.close()
         return -1
-    
-    #Se carga la clave privada
-    priv = privateKey.read()
 
     #Se carga la clave publica
     print("-> Recuperando clave pública de ID " + dest_id + "... ",end='')
@@ -226,7 +244,6 @@ def upload_file(path, dest_id):
 
     #Cierre de recursos
     f.close()
-    privateKey.close()
 
     #Preparamos un descriptor con los datos
     final_file = BytesIO(final)
@@ -262,12 +279,10 @@ def download_file(file_id, source_id, path = None):
     '''
 
     #Se obtiene nuestra clave privada:
-    privateKey = open("privateKey.pem", "rb")
-    if privateKey == None:
+    priv = get_private_key()
+    if priv == None:
         print("Error enviando fichero: no se ha encontrado clave privada. Debe crearse una identidad primero con --create_id.")
         return None
-    priv = privateKey.read()
-    privateKey.close()
 
     #Se carga la clave publica. Asi evitamos bajarnos el fichero entero y no tener la clave.
     print("-> Recuperando clave pública de ID " + source_id + "... ",end='')
