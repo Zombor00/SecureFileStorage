@@ -9,6 +9,8 @@ El cliente permite conectarse a SecureBox para transferir ficheros cifrados y fi
 ## Creación de una identidad
 Para llevar a cabo cifrados y firmas, debe crearse una identidad en SecureBox y asociarle la clave pública. Para ello, basta con correr el script con las opción --create_id _nombre_ _email_. Una vez hecho esto, se almacenará en la misma ubicación que el script un fichero _privateKey.pem_, que corresponde a la clave privada, y en el servidor quedará registrada la clave pública. En caso de querer renovarlas, se puede volver a ejecutar la misma opción, pero los ficheros que hayan sido cifrados y subidos en el pasado dejarán de ser válidos (dado que la clave pública se ha actualizado).
 
+## Eliminación de una identidad.
+Con la opción --delete_id _identificador_ se puede eliminar la identidad de SecureBox. Esto, además de retirar los datos del servidor, invalida el token de autenticación y los ficheros que se hayan subido, por tanto, para volver a utilizar el cliente, debe generarse un nuevo token de autenticación, colocarlo en el fichero indicado anteriormente, y subir de nuevo los ficheros que se deseen.
 ## Envío de ficheros
 Para enviar un fichero a otra persona, basta con ejecutar el script con las opciones --upload _ruta_ y --dest_id _identificador del receptor_. El fichero se cifrará y firmará para ese destinatario, suponiendo que tiene una clave pública correcta en el servidor, y se subirá.
 
