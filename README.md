@@ -3,6 +3,13 @@
 Segunda práctica de la asignatura REDES II. Creación de un almacenamiento seguro de ficheros.
 Autores: Alejandro Bravo de la Serna y Miguel González González.
 
+### Datos de prueba para la corrección.
+ID: 377666
+Token de Autorización: Se incluye en auth_token.dat, es: EA840b1Bd65Cc3f2.
+ID del fichero "prueba2.txt" subido para "e281430": ba38CAc5
+Comando utilizado para subir el fichero: (python3) securebox_client.py --upload prueba2.txt --dest_id e281430
+Comando que se debe utilizar para descargarlos: (python3) securebox_client.py --download ba38CAc5 --source_id 377666
+
 ## Utilización del cliente
 El cliente permite conectarse a SecureBox para transferir ficheros cifrados y firmados. Para utilizarlo, debe haber un token de autenticación en el fichero auth_token.dat, que debe encontrarse en la misma ubicación relativa al script. 
 
