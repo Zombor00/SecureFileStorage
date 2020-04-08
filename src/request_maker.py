@@ -24,6 +24,9 @@ def init_config(filename):
             -2 si faltan campos, -1 en caso de error, 0 en caso correcto. 
     '''
     global config #Datos de configuracion
+    #Datos para avisar al usuario si falta algo
+    expected_fields = ["url","token","endpoints"]
+    expected_endpoints = ["create_id","search_id","delete_id","get_public_key","upload_file","download_file","list_files","delete_file"]
 
     #Cargamos el fichero
     try:
@@ -32,7 +35,7 @@ def init_config(filename):
     except (FileNotFoundError, json.JSONDecodeError):
         return -1
     #En caso de que pueda faltar algun campo, se devuelve -2 para advertir al usuario.
-    if len(config) != 3 or config["endpoints"] == None or len(config["endpoints"]) != 8:
+    if not all(field in config for field in expected_fields) or (config["endpoints"] == None) or not all(field in config["endpoints"] for field in expected_endpoints):
         return -2
     return 0
 
@@ -57,7 +60,7 @@ def reset_config(filename):
     endpoints["delete_file"] = "/files/delete"
 
     default_config["url"] = "https://tfg.eps.uam.es:8080/api"
-    default_config["token"] = "EA840b1Bd65Cc3f2"
+    default_config["token"] = "REPLACE_WITH_CUSTOM_TOKEN"
     default_config["endpoints"] = endpoints
 
     #Escribimos
