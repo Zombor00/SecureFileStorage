@@ -28,7 +28,32 @@ if __name__ == "__main__":
     parser.add_argument('--encrypt', help = "Cifra un fichero para que lo pueda descifrar otro usuario.", metavar = 'ruta')
     parser.add_argument('--sign', help = "Firma un fichero.", metavar = 'ruta')
     parser.add_argument('--enc_sign', help = "Cifra y firma un fichero", metavar = 'ruta')
+    parser.add_argument('--config_file', nargs = '?', const = "config.json", default = "config.json", help = "Indica que fichero de configuracion utilizar. Por defecto, se usara config.json", metavar = 'ruta')
+    parser.add_argument('--generate_config', nargs = '?', const = "config.json", default = None, help = "Regenera el fichero de configuracion por defecto con el nombre indicado. Si no se indica, se usara config.json", metavar = 'ruta')
     args = parser.parse_args()
+
+    #Generar fichero de configuracion:
+    if args.generate_config != None:
+        print("Generando fichero de configuracion por defecto en: " + args.generate_config)
+        reset_config(args.generate_config)
+        exit("Fichero de configuracion almacenado con exito en: " + args.generate_config +". Saliendo...")
+    
+    #Cargamos el fichero de configuracion:
+    print("===================================")
+    print("Leyendo fichero de configuracion...")
+    retconfig = init_config(args.config_file)
+    if retconfig == -1:
+        print("Error leyendo fichero de configuracion.")
+        print(">>> Si ha modificado el nombre del fichero, por favor indique cual es con --config_file.")
+        print(">>> Si ha modificado o borrado erróneamente el fichero, puede generar otro con --generate_config. Mas información con --help.")
+        exit("===================================")
+    elif retconfig == -2:
+        print("ADVERTENCIA: Se ha detectado que faltan campos en el fichero de configuracion. Es posible que algunas funcionalidades del cliente fallen.")
+        print(">>> Puede generar un fichero de ejemplo con --generate_config para identificar los campos faltantes. Mas información con --help.")
+    else:
+        print(">>> Fichero cargado con exito")
+    print("===================================")
+    print()
 
     #Crear usuario
     if args.create_id != None:
@@ -149,4 +174,5 @@ if __name__ == "__main__":
         exit ("No se ha especificado ID de destinatario con --dest-id")
 
     #Si se llego hasta aqui es que falta algo
+    print(">>> ADVERTENCIA: No se ha especificado ninguna accion a realizar. Estas son las banderas disponibles:\n")
     parser.print_help()

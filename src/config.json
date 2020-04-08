@@ -1,0 +1,14 @@
+{
+    "url": "https://tfg.eps.uam.es:8080/api",
+    "token": "EA840b1Bd65Cc3f2",
+    "endpoints": {
+        "create_id": "/users/register",
+        "search_id": "/users/search",
+        "delete_id": "/users/delete",
+        "get_public_key": "/users/getPublicKey",
+        "upload_file": "/files/upload",
+        "download_file": "/files/download",
+        "list_files": "/files/list",
+        "delete_file": "/files/delete"
+    }
+}
