@@ -7,7 +7,7 @@
 '''
 
 from Crypto.Signature import pkcs1_15
-from Crypto.Cipher import AES,PKCS1_v1_5
+from Crypto.Cipher import AES,PKCS1_v1_5,PKCS1_OAEP
 from Crypto.PublicKey import RSA
 from Crypto.Util.Padding import pad,unpad
 from Crypto.Random import get_random_bytes
@@ -70,7 +70,7 @@ def decrypt(stream,key,iv,signed):
     try:
         pt = unpad(cipher.decrypt(stream), AES.block_size)
     except:
-        print("Error al desencriptar y unppadear el resultado del stream introducidos. Puede deberse a que el fichero solicitado no esté destinado a este usuario.")
+        print("Error descifrando: tras descifrar, no hay paddings donde se esperaban. Puede deberse a un descifrado incorrecto dado que el fichero solicitado no esté destinado a este usuario.")
         return None
 
     if(signed):
@@ -145,7 +145,7 @@ def enc_sign(stream,privKey,pubKey,firma=True):
     encrypted = encrypt(streamFirmado)
 
     #Generamos el sobre digital
-    cipher_rsa = PKCS1_v1_5.new(RSA.import_key(pubKey))
+    cipher_rsa = PKCS1_OAEP.new(RSA.import_key(pubKey))
     sobreDigital = cipher_rsa.encrypt(encrypted["key"])
      
     return encrypted["iv"] + sobreDigital + encrypted["ciphertext"]
@@ -166,11 +166,8 @@ def dec_sign(stream,privKey,pubKey):
     claveCifrada = stream[16:16 + 256]
     mensajeCifrado = stream[16 + 256:]
 
-    dsize = SHA.digest_size
-    sentinel = Random.new().read(15+dsize)
-
-    cipher_rsa = PKCS1_v1_5.new(RSA.import_key(privKey))
-    claveSimetrica = cipher_rsa.decrypt(claveCifrada, sentinel)
+    cipher_rsa = PKCS1_OAEP.new(RSA.import_key(privKey))
+    claveSimetrica = cipher_rsa.decrypt(claveCifrada)
 
     #Desciframos el mensaje
     print("-> Descifrando fichero... ",end='')
