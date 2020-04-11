@@ -7,7 +7,7 @@
 '''
 
 from Crypto.Signature import pkcs1_15
-from Crypto.Cipher import AES,PKCS1_v1_5
+from Crypto.Cipher import AES,PKCS1_v1_5,PKCS1_OAEP
 from Crypto.PublicKey import RSA
 from Crypto.Util.Padding import pad,unpad
 from Crypto.Random import get_random_bytes
@@ -145,7 +145,7 @@ def enc_sign(stream,privKey,pubKey,firma=True):
     encrypted = encrypt(streamFirmado)
 
     #Generamos el sobre digital
-    cipher_rsa = PKCS1_v1_5.new(RSA.import_key(pubKey))
+    cipher_rsa = PKCS1_OAEP.new(RSA.import_key(pubKey))
     sobreDigital = cipher_rsa.encrypt(encrypted["key"])
      
     return encrypted["iv"] + sobreDigital + encrypted["ciphertext"]
@@ -169,7 +169,7 @@ def dec_sign(stream,privKey,pubKey):
     dsize = SHA.digest_size
     sentinel = Random.new().read(15+dsize)
 
-    cipher_rsa = PKCS1_v1_5.new(RSA.import_key(privKey))
+    cipher_rsa = PKCS1_OAEP.new(RSA.import_key(privKey))
     claveSimetrica = cipher_rsa.decrypt(claveCifrada, sentinel)
 
     #Desciframos el mensaje
@@ -186,3 +186,10 @@ def dec_sign(stream,privKey,pubKey):
         return mensajeDescifrado[0]
     print("ERROR: Firma no válida")
     return None
+
+key = create_key()
+
+x = enc_sign("wtt",key[1],key[0],True)
+print(dec_sign(x,key[1],key[0]))
+
+
