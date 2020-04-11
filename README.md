@@ -16,12 +16,15 @@ Comando que se debe utilizar para descargarlos: (python3) securebox_client.py --
 
 
 ## Utilización del cliente
-El cliente permite conectarse a SecureBox para transferir ficheros cifrados y firmados. Para utilizarlo, debe haber un token de autenticación en el fichero auth_token.dat, que debe encontrarse en la misma ubicación relativa al script. 
+El cliente permite conectarse a SecureBox para transferir ficheros cifrados y firmados. Para utilizarlo, debe haberse configurado correctamente, según indica la siguiente sección.
+
+## Configuración del cliente
+Para configurar el cliente, debe introducirse el token de autenticación en el fichero de configuración _config.json_ incluido junto al script. Asimismo se puede personalizar la URL y los endpoints, en caso de que sea necesario. Si faltasen campos del fichero de configuración, o el propio fichero, o si se hubiese modificado erróneamente el fichero de tal modo que el cliente reporta advertencias o errores, es posible crear un fichero correcto (a falta de insertar el token del usuario) con la opción --generate_config _nombre_. Si se desease usar otro fichero de configuración que no fuese _config.json_, podría hacerse con --config_file _nombre_.  
 
 ## Creación de una identidad
 Para llevar a cabo cifrados y firmas, debe crearse una identidad en SecureBox y asociarle la clave pública. Para ello, basta con correr el script con las opción --create_id _nombre_ _email_. Una vez hecho esto, se almacenará en la misma ubicación que el script un fichero _privateKey.pem_, que corresponde a la clave privada, y en el servidor quedará registrada la clave pública. En caso de querer renovarlas, se puede volver a ejecutar la misma opción, pero los ficheros que hayan sido cifrados y subidos en el pasado dejarán de ser válidos (dado que la clave pública se ha actualizado).
 
-## Eliminación de una identidad.
+## Eliminación de una identidad
 Con la opción --delete_id _identificador_ se puede eliminar la identidad de SecureBox. Esto, además de retirar los datos del servidor, invalida el token de autenticación y los ficheros que se hayan subido, por tanto, para volver a utilizar el cliente, debe generarse un nuevo token de autenticación, colocarlo en el fichero indicado anteriormente, y subir de nuevo los ficheros que se deseen.
 ## Envío de ficheros
 Para enviar un fichero a otra persona, basta con ejecutar el script con las opciones --upload _ruta_ y --dest_id _identificador del receptor_. El fichero se cifrará y firmará para ese destinatario, suponiendo que tiene una clave pública correcta en el servidor, y se subirá.
