@@ -1,6 +1,6 @@
 {
     "url": "https://tfg.eps.uam.es:8080/api",
-    "token": "aE13AF2f0D56dC4b",
+    "token": "EA840b1Bd65Cc3f2",
     "endpoints": {
         "create_id": "/users/register",
         "search_id": "/users/search",

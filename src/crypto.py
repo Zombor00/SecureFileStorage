@@ -167,7 +167,11 @@ def dec_sign(stream,privKey,pubKey):
     mensajeCifrado = stream[16 + 256:]
 
     cipher_rsa = PKCS1_OAEP.new(RSA.import_key(privKey))
-    claveSimetrica = cipher_rsa.decrypt(claveCifrada)
+    try:
+        claveSimetrica = cipher_rsa.decrypt(claveCifrada)
+    except ValueError:
+        print("Error descifrando: Este mensaje no ha sido cifrado con su clave pública, es decir, usted no es el destinatario. Imposible descifrar.")
+        return None
 
     #Desciframos el mensaje
     print("-> Descifrando fichero... ",end='')
