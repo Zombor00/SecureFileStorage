@@ -166,12 +166,8 @@ def dec_sign(stream,privKey,pubKey):
     claveCifrada = stream[16:16 + 256]
     mensajeCifrado = stream[16 + 256:]
 
-    #Si falla PKCS (por ejemplo, ante una clave incorrecta, al comprobar los paddings), devolvemos una clave simetrica aleatoria como centinela. 
-    #Esto hace que AES, o bien falle porque los paddings no estan a 0 tras descifrar, o bien, si se da la casualidad, acabara fallando la verificacion de la firma.
-    sentinel = get_random_bytes(32)
-
     cipher_rsa = PKCS1_OAEP.new(RSA.import_key(privKey))
-    claveSimetrica = cipher_rsa.decrypt(claveCifrada, sentinel)
+    claveSimetrica = cipher_rsa.decrypt(claveCifrada)
 
     #Desciframos el mensaje
     print("-> Descifrando fichero... ",end='')
@@ -187,10 +183,3 @@ def dec_sign(stream,privKey,pubKey):
         return mensajeDescifrado[0]
     print("ERROR: Firma no válida")
     return None
-
-key = create_key()
-
-x = enc_sign("wtt",key[1],key[0],True)
-print(dec_sign(x,key[1],key[0]))
-
-
