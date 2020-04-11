@@ -64,13 +64,13 @@ def decrypt(stream,key,iv,signed):
     try:
         cipher = AES.new(key, AES.MODE_CBC, iv)
     except:
-        print("Error al generar el cifrador AES con la llave simétrica e IV introducidos.")
+        print("Error al generar el cifrador AES con la llave simétrica e IV introducidos. Puede deberse a que el fichero solicitado no esté destinado a este usuario.")
         return None
     
     try:
         pt = unpad(cipher.decrypt(stream), AES.block_size)
     except:
-        print("Error al desencriptar y unppadear el resultado del stream introducidos.")
+        print("Error descifrando: tras descifrar, no hay paddings donde se esperaban. Puede deberse a un descifrado incorrecto dado que el fichero solicitado no esté destinado a este usuario.")
         return None
 
     if(signed):
@@ -166,8 +166,9 @@ def dec_sign(stream,privKey,pubKey):
     claveCifrada = stream[16:16 + 256]
     mensajeCifrado = stream[16 + 256:]
 
-    dsize = SHA.digest_size
-    sentinel = Random.new().read(15+dsize)
+    #Si falla PKCS (por ejemplo, ante una clave incorrecta, al comprobar los paddings), devolvemos una clave simetrica aleatoria como centinela. 
+    #Esto hace que AES, o bien falle porque los paddings no estan a 0 tras descifrar, o bien, si se da la casualidad, acabara fallando la verificacion de la firma.
+    sentinel = get_random_bytes(32)
 
     cipher_rsa = PKCS1_OAEP.new(RSA.import_key(privKey))
     claveSimetrica = cipher_rsa.decrypt(claveCifrada, sentinel)
