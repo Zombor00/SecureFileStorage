@@ -17,6 +17,8 @@ if __name__ == "__main__":
     #Argumentos
     parser = argparse.ArgumentParser(description="Cliente de SecureBox. Autores: Alejandro Bravo y Miguel González.")
     parser.add_argument('--create_id', nargs=2, help="Crea una identidad de usuario en el servidor",metavar=('nombre','email'))
+    parser.add_argument('--register_token', nargs=2, help="Registra un token y lo encripta con una contraseña",metavar=('token','password'))
+    parser.add_argument('--password', nargs=1, help="Contraseña del usuario para desencriptar su token.",metavar='password')
     parser.add_argument('--search_id', help = "Busca un usuario cuyo nombre o correo contenga la cadena dada.", metavar='cadena')
     parser.add_argument('--delete_id', help = "Elimina un usuario dado su identificador.", metavar='identificador')
     parser.add_argument('--upload', help = "Sube un fichero al servidor, cifrado y firmado para que lo reciba un destinatario.", metavar='ruta')
@@ -55,12 +57,24 @@ if __name__ == "__main__":
     print("===================================")
     print()
 
+    #Si introduce password
+    if args.password != None:
+        password(args.password)
+    else:
+        exit("Introduzca contraseña por favor.")
+
     #Crear usuario
     if args.create_id != None:
         print("Creando identidad en el servidor...")
         if create_id(args.create_id[0],args.create_id[1]) == 0:
             exit ("Identidad creada con éxito.")
         exit ("Error creando identidad")
+
+    #Registra un token
+    if args.register_token != None:
+        print("Registrando token...")
+        register_token(args.register_token[0],args.register_token[1], args.config_file)
+        exit ("Se registro el token correctamente.")
 
     #Buscar usuarios
     if args.search_id != None:
@@ -121,7 +135,7 @@ if __name__ == "__main__":
             fichero = open(args.encrypt, "rb")
             if fichero == None:
                 exit ("Error abriendo fichero.")
-            enc = enc_sign(fichero.read(), None, publ,False)
+            enc = enc_sign(fichero.read(), None, publ,False,args.password)
             fichero.close()
             #Escribimos
             ficheroFinal = open(args.encrypt + "_ENCRYPTED", "wb")
@@ -141,7 +155,7 @@ if __name__ == "__main__":
         fichero = open(args.sign, "rb")
         if fichero == None:
             exit ("Error abriendo fichero.")
-        signed = sign(fichero.read(), priv)
+        signed = sign(fichero.read(), priv, args.password)
         fichero.close()
         ficheroFirmado = open(args.sign + "_SIGNED" , "wb")
         ficheroFirmado.write(signed)
@@ -164,7 +178,7 @@ if __name__ == "__main__":
             fichero = open(args.enc_sign, "rb")
             if fichero == None:
                 exit ("Error abriendo fichero.")
-            encsigned = enc_sign(fichero.read(), priv, publ)
+            encsigned = enc_sign(fichero.read(), priv, publ,args.password)
             fichero.close()
             #Escribimos
             ficheroFinal = open(args.enc_sign + "_ENCRYPTED_SIGNED", "wb")
