@@ -8,11 +8,13 @@
 
 import requests
 from datetime import datetime #Para formateo de fechas
-from crypto import create_key, sign, enc_sign, dec_sign
+from crypto import create_key, enc_sign, dec_sign, encrypt_with_password, decrypt_with_password
 from io import BytesIO
 import json #Json fichero de configuracion
+import base64
 
 config = dict() #Datos de configuracion.
+password_user = None
 
 def init_config(filename):
     '''
@@ -25,7 +27,7 @@ def init_config(filename):
     '''
     global config #Datos de configuracion
     #Datos para avisar al usuario si falta algo
-    expected_fields = ["url","token","endpoints"]
+    expected_fields = ["url","token","token_iv","endpoints"]
     expected_endpoints = ["create_id","search_id","delete_id","get_public_key","upload_file","download_file","list_files","delete_file"]
 
     #Cargamos el fichero
@@ -60,7 +62,8 @@ def reset_config(filename):
     endpoints["delete_file"] = "/files/delete"
 
     default_config["url"] = "https://tfg.eps.uam.es:8080/api"
-    default_config["token"] = "REPLACE_WITH_CUSTOM_TOKEN"
+    default_config["token"] = "REGISTER_TOKEN_WITH_CLIENT"
+    default_config["token_iv"] = "TOKEN_NOT_REGISTERED"
     default_config["endpoints"] = endpoints
 
     #Escribimos
@@ -133,7 +136,10 @@ def make_post_request(endpoint,post_json,post_data,post_files,raw_answer = 0):
     #Manejo de errores
     if r.status_code != 200:
         respuesta = r.json()
-        print("Servidor reporta error: " + respuesta["description"])
+        if(respuesta["error_code"] == "TOK1"):
+            print("Token erroneo, registra tu token con register_token y tu contraseña")
+        else:
+            print("Servidor reporta error: " + respuesta["description"])
         return None
 
     if raw_answer == 1:
@@ -152,8 +158,13 @@ def create_id(nombre, email):
         Retorno:
             0 si todo es correcto, -1 en otro caso. Imprime por pantalla el resultado.
     '''
+    global password_user
 
-    keys = create_key()
+    if(password_user == None):
+        print("Introduzca una contraseña.")
+        return -1
+
+    keys = create_key(password_user)
 
     #datos
     datos = dict()
@@ -174,7 +185,54 @@ def create_id(nombre, email):
     f.write(keys[1])
     f.close()
     return 0
-    
+
+def register_token(token, password, filename):
+    '''
+        Nombre: register_token
+        Descripción: Registra un token y lo encripta con la password introducida.
+        Argumentos:
+            token: token a registrar
+            password: password con la que se encripta el token
+            filename: nombre del fichero que contiene la configuración de securebox
+        Retorno:
+    '''
+
+    #Escribimos
+    with open(filename, "r+") as file:
+        config = json.load(file)
+        token_json = encrypt_with_password(token.encode(),password) 
+        config["token"] = base64.encodebytes(token_json['ciphertext']).decode("ascii")
+        config["token_iv"] = base64.encodebytes(token_json['iv']).decode("ascii")
+        #Escribimos en el fichero (rebobinando primero y truncando si escribimos menos)
+        file.seek(0)
+        json.dump(config, file, indent=4)
+        file.truncate()
+
+    return
+
+def password(pwd):
+    '''
+        Nombre: password
+        Descripción: Desencripta el token con la contraseña que introduce el usuario
+        Argumentos:
+            password: password con la que se decripta el token
+        Retorno:
+            0 si todo es correcto, -1 en otro caso.
+    '''
+    global password_user
+    #Ajustamos la contraseña del usuario en el cliente.
+    password_user = pwd
+
+    #Encriptamos el token
+    token_encrypted = base64.decodebytes(config["token"].encode("ascii"))
+    token_iv = base64.decodebytes(config["token_iv"].encode("ascii"))
+    token_decrypted = decrypt_with_password(token_encrypted, pwd, token_iv, False)
+    if(token_decrypted == None):
+        return -1
+    config["token"] = token_decrypted.decode()
+    return 0
+
+
 def search_id(cadena):
     '''
         Nombre: search_id
@@ -283,7 +341,7 @@ def upload_file(path, dest_id):
 
     #Se cifra+firma
     print("-> Cifrando y firmando fichero...",end='')
-    final = enc_sign(f.read(), priv, publ)
+    final = enc_sign(f.read(), priv, publ,password_user)
     print("OK")
 
     #Cierre de recursos
@@ -357,7 +415,7 @@ def download_file(file_id, source_id, path = None):
     print("-> " + str(len(respuesta.content)) + " bytes descargados correctamente")
 
     #Desciframos el mensaje
-    descifrado = dec_sign(respuesta.content, priv, publ)
+    descifrado = dec_sign(respuesta.content, priv, publ,password_user)
     if(descifrado == None):
        return None
 

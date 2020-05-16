@@ -8,7 +8,7 @@
 
 from request_maker import *
 from crypto import *
-from sys import exit
+from sys import exit, argv
 import argparse
 
 #Código principal del cliente: Consume los argumentos y llama a los módulos según corresponda.
@@ -17,6 +17,8 @@ if __name__ == "__main__":
     #Argumentos
     parser = argparse.ArgumentParser(description="Cliente de SecureBox. Autores: Alejandro Bravo y Miguel González.")
     parser.add_argument('--create_id', nargs=2, help="Crea una identidad de usuario en el servidor",metavar=('nombre','email'))
+    parser.add_argument('--register_token', nargs=2, help="Registra un token y lo encripta con una contraseña",metavar=('token','password'))
+    parser.add_argument('--password', help="Contraseña del usuario para desencriptar su token.",metavar='password')
     parser.add_argument('--search_id', help = "Busca un usuario cuyo nombre o correo contenga la cadena dada.", metavar='cadena')
     parser.add_argument('--delete_id', help = "Elimina un usuario dado su identificador.", metavar='identificador')
     parser.add_argument('--upload', help = "Sube un fichero al servidor, cifrado y firmado para que lo reciba un destinatario.", metavar='ruta')
@@ -55,6 +57,20 @@ if __name__ == "__main__":
     print("===================================")
     print()
 
+    #Registra un token
+    if args.register_token != None:
+        print("Registrando token...")
+        register_token(args.register_token[0],args.register_token[1], args.config_file)
+        exit ("Se registro el token correctamente.")
+
+    #Si introduce password
+    if args.password != None:
+        ret = password(args.password)
+        if(ret == -1):
+            exit("Contraseña introducida incorrecta. Puede volver a registrar el token con otra contraseña si ha sido extraviada.")
+    elif(len(argv) > 1):
+        exit("Introduzca contraseña por favor.")
+    
     #Crear usuario
     if args.create_id != None:
         print("Creando identidad en el servidor...")
@@ -83,7 +99,7 @@ if __name__ == "__main__":
             if upload_file(args.upload, args.dest_id) == 0:
                 exit("Operacion realizada con exito.")
             exit("Error subiendo el fichero")
-        exit ("No se ha especificado ID de destinatario con --dest-id")
+        exit ("No se ha especificado ID de destinatario con --dest_id")
 
     #Listar ficheros
     if args.list_files == True:
@@ -121,14 +137,14 @@ if __name__ == "__main__":
             fichero = open(args.encrypt, "rb")
             if fichero == None:
                 exit ("Error abriendo fichero.")
-            enc = enc_sign(fichero.read(), None, publ,False)
+            enc = enc_sign(fichero.read(), None, publ,args.password,False)
             fichero.close()
             #Escribimos
             ficheroFinal = open(args.encrypt + "_ENCRYPTED", "wb")
             ficheroFinal.write(enc)
             ficheroFinal.close()
             exit("Operacion realizada con exito. Salida: " + args.encrypt + "_ENCRYPTED")
-        exit ("No se ha especificado ID de destinatario con --dest-id")
+        exit ("No se ha especificado ID de destinatario con --dest_id")
 
     #Firmar fichero
     if args.sign != None:
@@ -141,7 +157,7 @@ if __name__ == "__main__":
         fichero = open(args.sign, "rb")
         if fichero == None:
             exit ("Error abriendo fichero.")
-        signed = sign(fichero.read(), priv)
+        signed = sign(fichero.read(), priv, args.password)
         fichero.close()
         ficheroFirmado = open(args.sign + "_SIGNED" , "wb")
         ficheroFirmado.write(signed)
@@ -164,14 +180,14 @@ if __name__ == "__main__":
             fichero = open(args.enc_sign, "rb")
             if fichero == None:
                 exit ("Error abriendo fichero.")
-            encsigned = enc_sign(fichero.read(), priv, publ)
+            encsigned = enc_sign(fichero.read(), priv, publ,args.password)
             fichero.close()
             #Escribimos
             ficheroFinal = open(args.enc_sign + "_ENCRYPTED_SIGNED", "wb")
             ficheroFinal.write(encsigned)
             ficheroFinal.close()
             exit("Operacion realizada con exito. Salida: " + args.enc_sign + "_ENCRYPTED_SIGNED" )
-        exit ("No se ha especificado ID de destinatario con --dest-id")
+        exit ("No se ha especificado ID de destinatario con --dest_id")
 
     #Si se llego hasta aqui es que falta algo
     print(">>> ADVERTENCIA: No se ha especificado ninguna accion a realizar. Estas son las banderas disponibles:\n")
