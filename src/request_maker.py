@@ -61,7 +61,7 @@ def reset_config(filename):
     endpoints["list_files"] = "/files/list"        
     endpoints["delete_file"] = "/files/delete"
 
-    default_config["url"] = "https://tfg.eps.uam.es:8080/api"
+    default_config["url"] = "https://vega.ii.uam.es:8080/api"
     default_config["token"] = "REGISTER_TOKEN_WITH_CLIENT"
     default_config["token_iv"] = "TOKEN_NOT_REGISTERED"
     default_config["endpoints"] = endpoints
@@ -224,9 +224,14 @@ def password(pwd):
     password_user = pwd
 
     #Encriptamos el token
-    token_encrypted = base64.decodebytes(config["token"].encode("ascii"))
-    token_iv = base64.decodebytes(config["token_iv"].encode("ascii"))
-    token_decrypted = decrypt_with_password(token_encrypted, pwd, token_iv, False)
+    try:
+        token_encrypted = base64.decodebytes(config["token"].encode("ascii"))
+        token_iv = base64.decodebytes(config["token_iv"].encode("ascii"))
+        token_decrypted = decrypt_with_password(token_encrypted, pwd, token_iv, False)
+    except:
+        #Error: Lo introducido no se corresponde con algo generado por el cliente
+        print("Error leyendo fichero de configuracion: Registre un TOKEN de autenticacion con --register_token.")
+        return -1
     if(token_decrypted == None):
         return -1
     config["token"] = token_decrypted.decode()

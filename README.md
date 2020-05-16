@@ -6,13 +6,13 @@ Autores: Alejandro Bravo de la Serna y Miguel González González.
 ### Datos de prueba para la corrección.
 ID: 377666
 
-Token de Autorización: Se incluye en config.json, es: EA840b1Bd65Cc3f2.
+Token de Autorización: EA840b1Bd65Cc3f2. **Debe registrarse con una clave mediante --register_token EA840b1Bd65Cc3f2 <clave>**
 
-ID del fichero "prueba2.txt" subido para "e281430": 5D7d2bf9
+ID del fichero "prueba2.txt" subido para "e281430": C9b7584c
 
-Comando utilizado para subir el fichero: (python3) securebox_client.py --upload prueba2.txt --dest_id e281430
+Comando utilizado para subir el fichero: (python3) securebox_client.py --upload prueba2.txt --dest_id e281430 --password <clave>
 
-Comando que se debe utilizar para descargarlos: (python3) securebox_client.py --download 5D7d2bf9 --source_id 377666
+Comando que se debe utilizar para descargarlos: (python3) securebox_client.py --download C9b7584c --source_id 377666 --password <clave>
 
 
 ## Utilización del cliente
