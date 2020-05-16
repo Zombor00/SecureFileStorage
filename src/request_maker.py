@@ -11,6 +11,7 @@ from datetime import datetime #Para formateo de fechas
 from crypto import create_key, enc_sign, dec_sign, encrypt_with_password, decrypt_with_password
 from io import BytesIO
 import json #Json fichero de configuracion
+import base64
 
 config = dict() #Datos de configuracion.
 password_user = None
@@ -197,12 +198,15 @@ def register_token(token, password, filename):
     '''
 
     #Escribimos
-    with open(filename, "w+") as file:
+    with open(filename, "r+") as file:
         config = json.load(file)
         token_json = encrypt_with_password(token.encode(),password) 
-        config["token"] = token_json['ciphertext']
-        config["token_iv"] = token_json['iv']
+        config["token"] = base64.encodebytes(token_json['ciphertext']).decode("ascii")
+        config["token_iv"] = base64.encodebytes(token_json['iv']).decode("ascii")
+        #Escribimos en el fichero (rebobinando primero y truncando si escribimos menos)
+        file.seek(0)
         json.dump(config, file, indent=4)
+        file.truncate()
 
     return
 
@@ -213,17 +217,20 @@ def password(pwd):
         Argumentos:
             password: password con la que se decripta el token
         Retorno:
+            0 si todo es correcto, -1 en otro caso.
     '''
     global password_user
     #Ajustamos la contraseña del usuario en el cliente.
     password_user = pwd
 
     #Encriptamos el token
-    token_encrypted = config["token"]
-    token_iv = config["token_iv"]
+    token_encrypted = base64.decodebytes(config["token"].encode("ascii"))
+    token_iv = base64.decodebytes(config["token_iv"].encode("ascii"))
     token_decrypted = decrypt_with_password(token_encrypted, pwd, token_iv, False)
-    config["token"] = token_decrypted
-    return
+    if(token_decrypted == None):
+        return -1
+    config["token"] = token_decrypted.decode()
+    return 0
 
 
 def search_id(cadena):

@@ -81,7 +81,7 @@ def decrypt_with_password(stream,password,iv,signed):
             El stream desencriptado o None en caso de error.
     '''
 
-    return decrypt(stream,SHA256.new(password).digest(),iv,signed)
+    return decrypt(stream,SHA256.new(password.encode()).digest(),iv,signed)
 
 def decrypt(stream,key,iv,signed):
     '''
@@ -98,13 +98,13 @@ def decrypt(stream,key,iv,signed):
     try:
         cipher = AES.new(key, AES.MODE_CBC, iv)
     except:
-        print("Error al generar el cifrador AES con la llave simétrica e IV introducidos. Puede deberse a que el fichero solicitado no esté destinado a este usuario.")
+        print("Error al generar el cifrador AES con la llave simétrica e IV introducidos. Puede deberse a que el fichero solicitado no esté destinado a este usuario o la contraseña introducida sea incorrecta.")
         return None
     
     try:
         pt = unpad(cipher.decrypt(stream), AES.block_size)
     except:
-        print("Error descifrando: tras descifrar, no hay paddings donde se esperaban. Puede deberse a un descifrado incorrecto dado que el fichero solicitado no esté destinado a este usuario.")
+        print("Error descifrando: tras descifrar, no hay paddings donde se esperaban. Puede deberse a un descifrado incorrecto dado que el fichero solicitado no esté destinado a este usuario o la contraseña introducida es incorrecta.")
         return None
 
     if(signed):
@@ -161,7 +161,7 @@ def verify_sign(stream,pubKey,firma):
         return False
 
 
-def enc_sign(stream,privKey,pubKey,firma=True,password):
+def enc_sign(stream,privKey,pubKey,password,firma=True):
     '''
         Nombre: enc_sign
         Descripcion: Aplicamos un mensaje híbrido para (firmar) y encriptar: (firma un mensaje usando RSA), encripta el mensaje firmado usando AES y luego genera un sobre digital con la clave simetrica.
