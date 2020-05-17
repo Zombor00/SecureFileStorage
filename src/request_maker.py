@@ -158,13 +158,10 @@ def create_id(nombre, email):
         Retorno:
             0 si todo es correcto, -1 en otro caso. Imprime por pantalla el resultado.
     '''
-    global password_user
 
-    if(password_user == None):
-        print("Introduzca una contraseña.")
-        return -1
+    token = get_auth_token()
 
-    keys = create_key(password_user)
+    keys = create_key(token)
 
     #datos
     datos = dict()
@@ -341,7 +338,7 @@ def upload_file(path, dest_id):
 
     #Se cifra+firma
     print("-> Cifrando y firmando fichero...",end='')
-    final = enc_sign(f.read(), priv, publ,password_user)
+    final = enc_sign(f.read(), priv, publ, get_auth_token())
     print("OK")
 
     #Cierre de recursos
@@ -415,7 +412,7 @@ def download_file(file_id, source_id, path = None):
     print("-> " + str(len(respuesta.content)) + " bytes descargados correctamente")
 
     #Desciframos el mensaje
-    descifrado = dec_sign(respuesta.content, priv, publ,password_user)
+    descifrado = dec_sign(respuesta.content, priv, publ, get_auth_token())
     if(descifrado == None):
        return None
 

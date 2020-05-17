@@ -170,7 +170,7 @@ def enc_sign(stream,privKey,pubKey,password,firma=True):
             privKey: clave privada del emisor usada para la firma digital.
             pubKey: clave publica del receptor usada para generar el sobredigital.
             firma: Indica si es necesario firmar el fichero.
-            password: COntraseña para importar la llave privada.
+            password: Contraseña para importar la llave privada.
         Retorno:
             Devuelve un string con los 16 primeros bytes el IV usado, los siguientes 32 bytes la clave simetrica usada, y los últimos el mensaje firmado y cifrado.
     '''

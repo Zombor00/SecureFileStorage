@@ -137,7 +137,7 @@ if __name__ == "__main__":
             fichero = open(args.encrypt, "rb")
             if fichero == None:
                 exit ("Error abriendo fichero.")
-            enc = enc_sign(fichero.read(), None, publ,args.password,False)
+            enc = enc_sign(fichero.read(), None, publ, get_auth_token(), False)
             fichero.close()
             #Escribimos
             ficheroFinal = open(args.encrypt + "_ENCRYPTED", "wb")
@@ -157,7 +157,7 @@ if __name__ == "__main__":
         fichero = open(args.sign, "rb")
         if fichero == None:
             exit ("Error abriendo fichero.")
-        signed = sign(fichero.read(), priv, args.password)
+        signed = sign(fichero.read(), priv, get_auth_token())
         fichero.close()
         ficheroFirmado = open(args.sign + "_SIGNED" , "wb")
         ficheroFirmado.write(signed)
@@ -180,7 +180,7 @@ if __name__ == "__main__":
             fichero = open(args.enc_sign, "rb")
             if fichero == None:
                 exit ("Error abriendo fichero.")
-            encsigned = enc_sign(fichero.read(), priv, publ,args.password)
+            encsigned = enc_sign(fichero.read(), priv, publ, get_auth_token())
             fichero.close()
             #Escribimos
             ficheroFinal = open(args.enc_sign + "_ENCRYPTED_SIGNED", "wb")
