@@ -8,11 +8,11 @@ ID: 377666
 
 Token de Autorización: EA840b1Bd65Cc3f2. **Debe registrarse con una clave (palabra de paso arbitraria) mediante --register_token EA840b1Bd65Cc3f2 _clave_**
 
-ID del fichero "prueba2.txt" subido para "e281430": C9b7584c
+ID del fichero "prueba2.txt" subido para "e281430": 0f71Fc34
 
 Comando utilizado para subir el fichero: (python3) securebox_client.py --upload prueba2.txt --dest_id e281430 --password _clave_
 
-Comando que se debe utilizar para descargarlos: (python3) securebox_client.py --download C9b7584c --source_id 377666 --password _clave_
+Comando que se debe utilizar para descargarlos: (python3) securebox_client.py --download 0f71Fc34 --source_id 377666 --password _clave_
 
 
 ## Utilización del cliente
