@@ -6,21 +6,22 @@ Autores: Alejandro Bravo de la Serna y Miguel González González.
 ### Datos de prueba para la corrección.
 ID: 377666
 
-Token de Autorización: Se incluye en config.json, es: EA840b1Bd65Cc3f2.
+Token de Autorización: EA840b1Bd65Cc3f2. **Debe registrarse con una clave (palabra de paso arbitraria) mediante --register_token EA840b1Bd65Cc3f2 _clave_**
 
-ID del fichero "prueba2.txt" subido para "e281430": 5D7d2bf9
+ID del fichero "prueba2.txt" subido para "e281430": C9b7584c
 
-Comando utilizado para subir el fichero: (python3) securebox_client.py --upload prueba2.txt --dest_id e281430
+Comando utilizado para subir el fichero: (python3) securebox_client.py --upload prueba2.txt --dest_id e281430 --password _clave_
 
-Comando que se debe utilizar para descargarlos: (python3) securebox_client.py --download 5D7d2bf9 --source_id 377666
+Comando que se debe utilizar para descargarlos: (python3) securebox_client.py --download C9b7584c --source_id 377666 --password _clave_
 
 
 ## Utilización del cliente
 El cliente permite conectarse a SecureBox para transferir ficheros cifrados y firmados. Para utilizarlo, debe haberse configurado correctamente, según indica la siguiente sección.
 
 ## Configuración del cliente
-Para configurar el cliente, debe introducirse el token de autenticación en el fichero de configuración _config.json_ incluido junto al script. Asimismo se puede personalizar la URL y los endpoints, en caso de que sea necesario. Si faltasen campos del fichero de configuración, o el propio fichero, o si se hubiese modificado erróneamente el fichero de tal modo que el cliente reporta advertencias o errores, es posible crear un fichero correcto (a falta de insertar el token del usuario) con la opción --generate_config _nombre_. Si se desease usar otro fichero de configuración que no fuese _config.json_, podría hacerse con --config_file _nombre_.  
+Para configurar el cliente, debe registrarse el token de autenticacion mediante la opción --register_token _token_ _clave_. Esto vinculará una clave de paso elegida por el usuario al token, que será cifrado con ella. Asimismo, cuando el usuario genere claves RSA, la clave privada irá cifrada con el token, razón por la cual conviene que el token requiera una contraseña. Asimismo se puede personalizar la URL y los endpoints en el fichero de configuración, en caso de que sea necesario. Si faltasen campos del fichero de configuración, o el propio fichero, o si se hubiese modificado erróneamente el fichero de tal modo que el cliente reporta advertencias o errores, es posible crear un fichero correcto (a falta de insertar el token del usuario) con la opción --generate_config _nombre_. Si se desease usar otro fichero de configuración que no fuese _config.json_, podría hacerse con --config_file _nombre_.  
 
+En adelante, todas las acciones requerirán de la opción --password _clave_ para identificarse y descifrar así el token y, cuando sea necesario, la clave privada.
 ## Creación de una identidad
 Para llevar a cabo cifrados y firmas, debe crearse una identidad en SecureBox y asociarle la clave pública. Para ello, basta con correr el script con las opción --create_id _nombre_ _email_. Una vez hecho esto, se almacenará en la misma ubicación que el script un fichero _privateKey.pem_, que corresponde a la clave privada, y en el servidor quedará registrada la clave pública. En caso de querer renovarlas, se puede volver a ejecutar la misma opción, pero los ficheros que hayan sido cifrados y subidos en el pasado dejarán de ser válidos (dado que la clave pública se ha actualizado).
 

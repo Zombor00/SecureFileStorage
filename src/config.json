@@ -1,6 +1,7 @@
 {
-    "url": "https://tfg.eps.uam.es:8080/api",
-    "token": "EA840b1Bd65Cc3f2",
+    "url": "https://vega.ii.uam.es:8080/api",
+    "token": "REGISTER_TOKEN_WITH_CLIENT",
+    "token_iv": "TOKEN_NOT_REGISTERED",
     "endpoints": {
         "create_id": "/users/register",
         "search_id": "/users/search",
