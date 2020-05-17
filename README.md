@@ -6,7 +6,7 @@ Autores: Alejandro Bravo de la Serna y Miguel González González.
 ### Datos de prueba para la corrección.
 ID: 377666
 
-Token de Autorización: EA840b1Bd65Cc3f2. **Debe registrarse con una clave (palabra de paso, arbitraria) mediante --register_token EA840b1Bd65Cc3f2 _clave_**
+Token de Autorización: EA840b1Bd65Cc3f2. **Debe registrarse con una clave (palabra de paso arbitraria) mediante --register_token EA840b1Bd65Cc3f2 _clave_**
 
 ID del fichero "prueba2.txt" subido para "e281430": C9b7584c
 
