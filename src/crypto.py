@@ -131,7 +131,10 @@ def sign(stream,privKey,password):
     if(password == None):
         firma = pkcs1_15.new(RSA.import_key(privKey)).sign(hashedStream)
     else:
-        firma = pkcs1_15.new(RSA.import_key(privKey,passphrase=password)).sign(hashedStream)
+        try:
+            firma = pkcs1_15.new(RSA.import_key(privKey,passphrase=password)).sign(hashedStream)
+        except ValueError:
+            print("Contrasena introducida incorrecta o clave privada erronea. Puede generar una nueva identidad con --create_id.")
 
     #Devolvemos la firma concatenada
     return firma + stream
@@ -210,7 +213,10 @@ def dec_sign(stream,privKey,pubKey,password):
     if(password == None):
         cipher_rsa = PKCS1_OAEP.new(RSA.import_key(privKey))
     else:
-        cipher_rsa = PKCS1_OAEP.new(RSA.import_key(privKey,passphrase=password))
+        try:
+            cipher_rsa = PKCS1_OAEP.new(RSA.import_key(privKey,passphrase=password))
+        except ValueError:
+            print("Contrasena introducida incorrecta o clave privada erronea. Puede generar una nueva identidad con --create_id.")
 
     try:
         claveSimetrica = cipher_rsa.decrypt(claveCifrada)
